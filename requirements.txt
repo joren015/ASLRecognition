@@ -1,0 +1,11 @@
+requests==2.23.0
+matplotlib==3.2.2
+numpy==1.18.5
+pandas==1.1.5
+scipy==1.4.1
+scikit-image==0.16.2
+scikit-learn==0.22.2.post1
+opencv-python==3.4.11.45
+mediapipe==0.8.0
+torch==1.7.0
+torchvision==0.8.1

@@ -1,4 +1,6 @@
 import json
+import uuid
+import pandas as pd
 import cv2
 import torch
 import matplotlib.pyplot as plt
@@ -36,7 +38,7 @@ def ChunkList(my_list, n):
 
 
 def PreprocessDatasets(
-    load_path, save_path_replace, save_replace_with, image_format, overwrite=False
+    load_path, save_path, image_format, overwrite=False
 ):
     dataset = []
     imgs = []
@@ -46,7 +48,7 @@ def PreprocessDatasets(
             file_i = files[i]
             if file_i.endswith(image_format):
                 load_path_i = "{}/{}".format(root, file_i)
-                save_path_i = load_path_i.replace(save_path_replace, save_replace_with)
+                save_path_i = "{}/{}".format(save_path, file_i)
                 if not exists(save_path_i) or overwrite:
                     save_path_base_i = "/".join(save_path_i.split("/")[0:-1])
                     if not exists(save_path_base_i):
@@ -207,7 +209,7 @@ def TransformEval(image_i, image_j, landmarks_i, landmarks_j, transform="homogra
 
         return mssim2 - mssim1
     except FileNotFoundError:
-        print("File not found: {}".format(letter))
+        print("File not found")
         return 0
     # except:
     #   print("Unexpected error:", sys.exc_info()[0])
@@ -317,8 +319,8 @@ def LabelDatasets(load_path, save_path, encoding_config):
     dataset = []
     encoding_dict = encoding_config
 
-    if not exists(save_path_base):
-        makedirs(save_path_base)
+    if not exists(save_path):
+        makedirs(save_path)
 
     for root, dirs, files in walk(load_path):
         root_split = root.split("/")

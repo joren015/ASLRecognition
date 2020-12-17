@@ -9,20 +9,8 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 
 
-if "COLAB_TPU_ADDR" not in environ:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    gpu_info = !nvidia-smi
-    gpu_info = '\n'.join(gpu_info)
-    if gpu_info.find('failed') >= 0:
-        print('Select the Runtime > "Change runtime type" menu to enable a GPU accelerator, ')
-        print('and then re-execute this cell.')
-    else:
-        print(gpu_info)
-else:
-    !pip install cloud-tpu-client==0.10 https://storage.googleapis.com/tpu-pytorch/wheels/torch_xla-1.6-cp36-cp36m-linux_x86_64.whl
-    import torch_xla
-    import torch_xla.core.xla_model as xm
-    device = xm.xla_device()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 
 class ASLDataset(Dataset):

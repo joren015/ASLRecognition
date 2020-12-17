@@ -1,45 +1,25 @@
 # !pip install mediapipe==0.8.0
 from NotebookUtils import PrintDatetime
 PrintDatetime("Importing packages")
-# import tarfile
-# import sys
-# import json
-# import requests
-# import uuid
-# import cv2
-# import torch
-# import torch.nn as nn
-# import torch.nn.functional as F
+import itertools  
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import mediapipe as mp
 import shutil
-# import sklearn
-# import torchvision
-# import scipy
-# import skimage
 from os import walk, makedirs, listdir, cpu_count, environ
 from os.path import join, exists, isfile, join
-# from datetime import datetime
-# from multiprocessing import Pool
-# from sklearn.model_selection import train_test_split
-# from torch.utils.data import Dataset, DataLoader
-# from torchvision import transforms, utils
-# from google.colab import drive
-# from google.colab.patches import cv2_imshow
-# from scipy import ndimage
-# from skimage.measure import compare_ssim
-# from statistics import median
-# from skimage.feature import (match_descriptors, plot_matches, CENSURE)
-# from PIL import Image as im
-# import itertools
-# print("Done")
+from sklearn.model_selection import train_test_split
 from Functions import *
+from Model import *
 PrintDatetime()
 
 
 root_dir = "/mnt/d/School/Masters/CSCI5561ComputerVision/Project/content"
+dataset_path = "{}/Datasets".format(root_dir)
+if not exists(root_dir):
+  makedirs(root_dir)
+
 try:
   shutil.rmtree(root_dir + "/Datasets/silver")
   shutil.rmtree(root_dir + "/Datasets/gold")
@@ -53,7 +33,14 @@ for d in directories:
     makedirs(d)
 
 
-dataset_path = "{}/Datasets".format(root_dir)
+starting_data = {"./Datasets/HomemadeDataset2/center_2.mp4": "{}/bronze/homemade_dataset2/center_2.mp4".format(dataset_path), "./Datasets/HomemadeDataset2/center_2.csv": "{}/bronze/homemade_dataset2/center_2.csv".format(dataset_path), "./Datasets/HomemadeDataset2/baseline_eval_homography_homemade_dataset2.json": "{}/bronze/homemade_dataset2/baseline_eval_homography_homemade_dataset2.json".format(dataset_path)}
+for k,v in starting_data.items():
+  if not exists(v):
+    shutil.copyfile(k, v)
+
+
+
+
 train_test_path_base = "{}/gold".format(dataset_path)
 alpha_num = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
 encoding_config = {"a": 0, "b": 1,"c": 2,"d": 3,"e": 4,"f": 5,"g": 6,"h": 7
@@ -168,7 +155,7 @@ for i in dirs:
       reverted_points = np.zeros([21,3])
       reverted_points[:,0] = (w/2 - points[:,0] + w/2)/w
       reverted_points[:,1] = points[:,1]/h
-      torch.save(torch.from_numpy(reverted_points), landmarks_path.replace("homemade_dataset2", "homemade_dataset2_resized"))
+      torch.save(torch.from_numpy(reverted_points), landmarks_path.replace("silver/homemade_dataset2", "gold/homemade_dataset2_resized"))
       plt.imsave("{}/{}".format(save_dir, file_name), img_cropped)
       # plt.imshow(img_cropped)
       # plt.show()
@@ -177,20 +164,20 @@ PrintDatetime()
 
 
 PrintDatetime("Started resizing video dataset")
-PreprocessDatasets("{}/silver/homemade_dataset2_cropped/center_2".format(dataset_path), "homemade_dataset2_cropped", "homemade_dataset2_resized", ".png", overwrite=True)
+PreprocessDatasets("{}/silver/homemade_dataset2_cropped/center_2".format(dataset_path), "{}/gold/homemade_dataset2_resized/center_2".format(dataset_path), ".png", overwrite=True)
 PrintDatetime()
 
 
 
 PrintDatetime("Started determining new baseline")
-baseline_results_path = "{}/bronze/homemade_dataset2/baseline_eval_homography_homemade_dataset2.json".format(dataset_path)
-DetermineNewBaseline("{}/silver/homemade_dataset2_resized/center_2".format(dataset_path), baseline_results_path)
+baseline_results_path = "{}/bronze/homemade_dataset2".format(dataset_path)
+DetermineNewBaseline("{}/gold/homemade_dataset2_resized/center_2".format(dataset_path), baseline_results_path)
 PrintDatetime()
 
 
 
 PrintDatetime("Started transforming video dataset")
-baseline2 = NewBaseline(baseline_results_path)
+baseline2 = NewBaseline(baseline_results_path + "/baseline_eval_homography_homemade_dataset2.json")
 dirs = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 results = {c: {} for c in dirs}
 transform = "homography"
@@ -236,11 +223,11 @@ PrintDatetime("Started training")
 hpt = {"learning_rate": [1e-2], "batch_size": [32]}
 configs = ["1", "2"]
 keys, values = zip(*hpt.items())
-i = 1000
+i = 1
 for config in configs:
   for v in itertools.product(*values):
-    model_save_path_base = "/content/drive/Shareddrives/CSCI5561_ComputerVision/models/homemade_dataset2/Base/{}".format(i)
-    model_save_path_transformed = "/content/drive/Shareddrives/CSCI5561_ComputerVision/models/homemade_dataset2/Transformed/{}".format(i)
+    model_save_path_base = "{}/models/homemade_dataset2/Base/{}".format(root_dir, i)
+    model_save_path_transformed = "{}/models/homemade_dataset2/Transformed/{}".format(root_dir, i)
     makedirs(model_save_path_base)
     makedirs(model_save_path_transformed)
     experiment = dict(zip(keys, v))

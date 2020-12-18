@@ -1,4 +1,3 @@
-# !pip install mediapipe==0.8.0
 from NotebookUtils import PrintDatetime
 PrintDatetime("Importing packages")
 import itertools  
@@ -15,7 +14,7 @@ from Model import *
 PrintDatetime()
 
 
-root_dir = "/mnt/d/School/Masters/CSCI5561ComputerVision/Project/content"
+root_dir = "../content"
 dataset_path = "{}/Datasets".format(root_dir)
 if not exists(root_dir):
   makedirs(root_dir)
@@ -33,7 +32,7 @@ for d in directories:
     makedirs(d)
 
 
-starting_data = {"./Datasets/HomemadeDataset2/center_2.mp4": "{}/bronze/homemade_dataset2/center_2.mp4".format(dataset_path), "./Datasets/HomemadeDataset2/center_2.csv": "{}/bronze/homemade_dataset2/center_2.csv".format(dataset_path), "./Datasets/HomemadeDataset2/baseline_eval_homography_homemade_dataset2.json": "{}/bronze/homemade_dataset2/baseline_eval_homography_homemade_dataset2.json".format(dataset_path)}
+starting_data = {"./Datasets/HomemadeDataset2/center_2.mp4": "{}/bronze/homemade_dataset2/center_2.mp4".format(dataset_path), "./Datasets/HomemadeDataset2/center_2.csv": "{}/bronze/homemade_dataset2/center_2.csv".format(dataset_path)}
 for k,v in starting_data.items():
   if not exists(v):
     shutil.copyfile(k, v)
@@ -177,7 +176,7 @@ PrintDatetime()
 
 
 PrintDatetime("Started transforming video dataset")
-baseline2 = NewBaseline(baseline_results_path + "/baseline_eval_homography_homemade_dataset2.json")
+baseline2 = NewBaseline(baseline_results_path + "/baseline_eval_homography_homemade_dataset.json")
 dirs = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 results = {c: {} for c in dirs}
 transform = "homography"
@@ -199,7 +198,6 @@ for c in dirs:
       torch.save(torch.from_numpy(img_transformed.reshape(3, 200, 200)), img_path.replace("homemade_dataset2_resized", "homemade_dataset2_transformed").replace(".png", ".pt"))
       
 
-  print(image_paths)
   print("Character: {}".format(c))
 
 PrintDatetime()
@@ -219,9 +217,9 @@ PrintDatetime()
 
 
 PrintDatetime("Started training")
-# hpt = {"learning_rate": [1e-2, 1e-4, 1e-5], "batch_size": [8, 32, 128]}
-hpt = {"learning_rate": [1e-2], "batch_size": [32]}
-configs = ["1", "2"]
+hpt = {"learning_rate": [1e-2, 1e-4, 1e-5], "batch_size": [8, 32, 128]}
+# hpt = {"learning_rate": [1e-2], "batch_size": [32]}
+configs = [1, 2]
 keys, values = zip(*hpt.items())
 i = 1
 for config in configs:
@@ -252,10 +250,10 @@ for config in configs:
     az_dataset = full_dataset[full_dataset["LabelEncoded"] <= 25]
     train_dataset, test_val_dataset = train_test_split(az_dataset, test_size=0.2, random_state=0, shuffle=True)
     test_dataset, val_dataset = train_test_split(test_val_dataset, test_size=0.5, random_state=0, shuffle=True)
+    train_dataset.to_csv("{}/train_az.csv".format(homemade_train_test_path_transformed))
     if config == 1:
       config_train_path = "{}/train_az.csv".format(homemade_train_test_path_transformed)
     elif config == 2:
-      train_dataset.to_csv("{}/train_az.csv".format(homemade_train_test_path_transformed))
       config_train_path = "{}/train_az.csv".format(homemade_train_test_path)
 
     test_dataset.to_csv("{}/test_az.csv".format(homemade_train_test_path_transformed))

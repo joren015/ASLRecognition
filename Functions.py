@@ -252,7 +252,7 @@ def DetermineNewBaseline(load_dir, save_dir):
       print("Character: {}".format(c))
       results[c] = BaselineEval(image_paths, transform)
 
-    with open('{}/baseline_eval_{}_homemade_dataset2.json'.format(save_dir, transform), 'w') as f:
+    with open('{}/baseline_eval_{}_homemade_dataset.json'.format(save_dir, transform), 'w') as f:
       json.dump(results, f)
 
 

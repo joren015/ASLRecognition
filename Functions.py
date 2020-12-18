@@ -88,7 +88,7 @@ def MPAnnotate(file_list, save_dir, landmarks_save_dir, confidence=0.7):
         filename_base = file.split("/")[-1].split(".")[-2]
         image_path = save_dir + filename_base
         landmarks_path = landmarks_save_dir + filename_base
-        # cv2.imwrite(image_path + '_annotated.png', cv2.flip(annotated_image, 1))
+        cv2.imwrite(image_path + '_annotated.png', cv2.flip(annotated_image, 1))
         torch.save(torch.from_numpy(landmark_matrix), landmarks_path + "_landmarks.pt")
 
     hands.close()

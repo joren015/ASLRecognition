@@ -88,7 +88,7 @@ def MPAnnotate(file_list, save_dir, landmarks_save_dir, confidence=0.7):
         filename_base = file.split("/")[-1].split(".")[-2]
         image_path = save_dir + filename_base
         landmarks_path = landmarks_save_dir + filename_base
-        cv2.imwrite(image_path + '_annotated.png', cv2.flip(annotated_image, 1))
+        # cv2.imwrite(image_path + '_annotated.png', cv2.flip(annotated_image, 1))
         torch.save(torch.from_numpy(landmark_matrix), landmarks_path + "_landmarks.pt")
 
     hands.close()
@@ -176,7 +176,10 @@ def CENSURETransform(img1, img2, fp1, fp2):
     points2 = kp2[matches[:, 1]]
 
     M, mask = cv2.findHomography(points1, points2, cv2.RANSAC)
-    dst = cv2.warpPerspective(img1, M, (img1.shape[1], img1.shape[0]))
+    if M is None:
+      return
+    else:
+      dst = cv2.warpPerspective(img1, M, (img1.shape[1], img1.shape[0]))
 
     return dst
 
@@ -193,6 +196,9 @@ def TransformEval(image_i, image_j, landmarks_i, landmarks_j, transform="homogra
             dst = CENSURETransform(img1, img2, fp1, fp2)
         else:
             raise Exception("Invalid transform")
+
+        if dst is None:
+          return
 
         img1_gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
         img2_gray = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
@@ -226,9 +232,10 @@ def BaselineEval(image_paths, transform="homography"):
             if not (image_j == image_i):
                 landmarks_j = image_j.replace(".png", "_landmarks.pt")
                 diff = TransformEval(
-                    image_j, image_i, landmarks_i, landmarks_j, transform=transform
+                    image_j, image_i, landmarks_j, landmarks_i, transform=transform
                 )
-                scores.append({image_j: diff})
+                if diff is not None:
+                  scores.append({image_j: diff})
 
         results[image_i] = scores
         # print("\n---------- Results ----------\n")
@@ -240,8 +247,12 @@ def BaselineEval(image_paths, transform="homography"):
     return results
 
 
-def DetermineNewBaseline(load_dir, save_dir):
-  dirs = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+def DetermineNewBaseline(load_dir, save_dir, is_still=True):
+  if is_still:
+    dirs = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y"]
+  else:
+    dirs = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+  
   results = {c: {} for c in dirs}
   transforms = ["homography"]
   for transform in transforms:
@@ -256,38 +267,14 @@ def DetermineNewBaseline(load_dir, save_dir):
       json.dump(results, f)
 
 
-def NewBaseline(file):
+def NewBaseline(file, is_still=True):
     file1 = open(file)
     json_file = json.load(file1)
+    if is_still:
+      dirs = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y"]
+    else:
+      dirs = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
-    dirs = [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "J",
-        "K",
-        "L",
-        "M",
-        "N",
-        "O",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "U",
-        "V",
-        "W",
-        "X",
-        "Y",
-        "Z",
-    ]
     baseline = ["" for x in range(len(dirs))]
     count1 = 0
     for c in dirs:  # A, B, C...

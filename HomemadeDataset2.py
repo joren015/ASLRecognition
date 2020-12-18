@@ -14,7 +14,7 @@ from Model import *
 PrintDatetime()
 
 
-root_dir = "../content"
+root_dir = "/mnt/d/School/Masters/CSCI5561ComputerVision/Project/content"
 dataset_path = "{}/Datasets".format(root_dir)
 if not exists(root_dir):
   makedirs(root_dir)
@@ -170,13 +170,13 @@ PrintDatetime()
 
 PrintDatetime("Started determining new baseline")
 baseline_results_path = "{}/bronze/homemade_dataset2".format(dataset_path)
-DetermineNewBaseline("{}/gold/homemade_dataset2_resized/center_2".format(dataset_path), baseline_results_path)
+DetermineNewBaseline("{}/gold/homemade_dataset2_resized/center_2".format(dataset_path), baseline_results_path, is_still=False)
 PrintDatetime()
 
 
 
 PrintDatetime("Started transforming video dataset")
-baseline2 = NewBaseline(baseline_results_path + "/baseline_eval_homography_homemade_dataset.json")
+baseline2 = NewBaseline(baseline_results_path + "/baseline_eval_homography_homemade_dataset.json", is_still=False)
 dirs = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 results = {c: {} for c in dirs}
 transform = "homography"
@@ -217,8 +217,8 @@ PrintDatetime()
 
 
 PrintDatetime("Started training")
-hpt = {"learning_rate": [1e-2, 1e-4, 1e-5], "batch_size": [8, 32, 128]}
-# hpt = {"learning_rate": [1e-2], "batch_size": [32]}
+# hpt = {"learning_rate": [1e-2, 1e-4, 1e-5], "batch_size": [8, 32, 128]}
+hpt = {"learning_rate": [1e-2], "batch_size": [32]}
 configs = [1, 2]
 keys, values = zip(*hpt.items())
 i = 1
@@ -242,7 +242,7 @@ for config in configs:
     train_dataset.to_csv("{}/train_az.csv".format(homemade_train_test_path))
     test_dataset.to_csv("{}/test_az.csv".format(homemade_train_test_path))
     val_dataset.to_csv("{}/val_az.csv".format(homemade_train_test_path))
-    main("{}/train_az.csv".format(homemade_train_test_path), "{}/test_az.csv".format(homemade_train_test_path), "{}/val_az.csv".format(homemade_train_test_path), learning_rate=learning_rate, batch_size=batch_size, num_epochs=2000, model_save_path=model_save_path_base)
+    main("{}/train_az.csv".format(homemade_train_test_path), "{}/test_az.csv".format(homemade_train_test_path), "{}/val_az.csv".format(homemade_train_test_path), learning_rate=learning_rate, batch_size=batch_size, num_epochs=10, model_save_path=model_save_path_base)
     PrintDatetime()
 
     homemade_train_test_path_transformed = "{}/homemade_dataset2_transformed".format(train_test_path_base)
@@ -259,7 +259,7 @@ for config in configs:
     test_dataset.to_csv("{}/test_az.csv".format(homemade_train_test_path_transformed))
     val_dataset.to_csv("{}/val_az.csv".format(homemade_train_test_path_transformed))
     PrintDatetime("Started training experiment")
-    main(config_train_path, "{}/test_az.csv".format(homemade_train_test_path_transformed), "{}/val_az.csv".format(homemade_train_test_path_transformed), learning_rate=learning_rate, batch_size=batch_size, num_epochs=2000, model_save_path=model_save_path_transformed)
+    main(config_train_path, "{}/test_az.csv".format(homemade_train_test_path_transformed), "{}/val_az.csv".format(homemade_train_test_path_transformed), learning_rate=learning_rate, batch_size=batch_size, num_epochs=10, model_save_path=model_save_path_transformed)
     PrintDatetime()
     i += 1
 

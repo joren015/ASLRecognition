@@ -217,51 +217,52 @@ PrintDatetime()
 
 
 PrintDatetime("Started training")
-# hpt = {"learning_rate": [1e-2, 1e-4, 1e-5], "batch_size": [8, 32, 128]}
-hpt = {"learning_rate": [1e-2], "batch_size": [32]}
-configs = [1, 2]
+hpt = {"learning_rate": [1e-2, 1e-4, 1e-5], "batch_size": [8, 32, 128]}
+# hpt = {"learning_rate": [1e-2], "batch_size": [128]}
 keys, values = zip(*hpt.items())
+num_epoch = 5
 i = 1
-for config in configs:
-  for v in itertools.product(*values):
-    model_save_path_base = "{}/models/homemade_dataset2/Base/{}".format(root_dir, i)
-    model_save_path_transformed = "{}/models/homemade_dataset2/Transformed/{}".format(root_dir, i)
-    makedirs(model_save_path_base)
-    makedirs(model_save_path_transformed)
-    experiment = dict(zip(keys, v))
-    print(experiment)
-    learning_rate = experiment["learning_rate"]
-    batch_size = experiment["batch_size"]
+for v in itertools.product(*values):
+  model_save_path_base = "{}/models/HomemadeDataset2/Base/{}".format(root_dir, i)
+  model_save_path_transformed = "{}/models/HomemadeDataset2/Transformed/{}".format(root_dir, i)
+  model_save_path_cross = "{}/models/HomemadeDataset2/Cross/{}".format(root_dir, i)
+  makedirs(model_save_path_base)
+  makedirs(model_save_path_transformed)
+  makedirs(model_save_path_cross)
+  experiment = dict(zip(keys, v))
+  print(experiment)
+  learning_rate = experiment["learning_rate"]
+  batch_size = experiment["batch_size"]
 
-    PrintDatetime("Started")
-    homemade_train_test_path = "{}/homemade_dataset2_resized".format(train_test_path_base)
-    full_dataset = pd.read_csv("{}/labels.csv".format(homemade_train_test_path))
-    az_dataset = full_dataset[full_dataset["LabelEncoded"] <= 25]
-    train_dataset, test_val_dataset = train_test_split(az_dataset, test_size=0.2, random_state=0, shuffle=True)
-    test_dataset, val_dataset = train_test_split(test_val_dataset, test_size=0.5, random_state=0, shuffle=True)
-    train_dataset.to_csv("{}/train_az.csv".format(homemade_train_test_path))
-    test_dataset.to_csv("{}/test_az.csv".format(homemade_train_test_path))
-    val_dataset.to_csv("{}/val_az.csv".format(homemade_train_test_path))
-    main("{}/train_az.csv".format(homemade_train_test_path), "{}/test_az.csv".format(homemade_train_test_path), "{}/val_az.csv".format(homemade_train_test_path), learning_rate=learning_rate, batch_size=batch_size, num_epochs=10, model_save_path=model_save_path_base)
-    PrintDatetime()
+  PrintDatetime("Started")
+  homemade_train_test_path = "{}/homemade_dataset2_resized".format(train_test_path_base)
+  full_dataset = pd.read_csv("{}/labels.csv".format(homemade_train_test_path))
+  az_dataset = full_dataset[full_dataset["LabelEncoded"] <= 25]
+  train_dataset, test_val_dataset = train_test_split(az_dataset, test_size=0.2, random_state=0, shuffle=True)
+  test_dataset, val_dataset = train_test_split(test_val_dataset, test_size=0.5, random_state=0, shuffle=True)
+  train_dataset.to_csv("{}/train_az.csv".format(homemade_train_test_path))
+  test_dataset.to_csv("{}/test_az.csv".format(homemade_train_test_path))
+  val_dataset.to_csv("{}/val_az.csv".format(homemade_train_test_path))
+  main("{}/train_az.csv".format(homemade_train_test_path), "{}/test_az.csv".format(homemade_train_test_path), "{}/val_az.csv".format(homemade_train_test_path), learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epoch, model_save_path=model_save_path_base)
+  PrintDatetime()
 
-    homemade_train_test_path_transformed = "{}/homemade_dataset2_transformed".format(train_test_path_base)
-    full_dataset = pd.read_csv("{}/labels.csv".format(homemade_train_test_path_transformed))
-    az_dataset = full_dataset[full_dataset["LabelEncoded"] <= 25]
-    train_dataset, test_val_dataset = train_test_split(az_dataset, test_size=0.2, random_state=0, shuffle=True)
-    test_dataset, val_dataset = train_test_split(test_val_dataset, test_size=0.5, random_state=0, shuffle=True)
-    train_dataset.to_csv("{}/train_az.csv".format(homemade_train_test_path_transformed))
-    if config == 1:
-      config_train_path = "{}/train_az.csv".format(homemade_train_test_path_transformed)
-    elif config == 2:
-      config_train_path = "{}/train_az.csv".format(homemade_train_test_path)
+  homemade_train_test_path_transformed = "{}/homemade_dataset2_transformed".format(train_test_path_base)
+  full_dataset = pd.read_csv("{}/labels.csv".format(homemade_train_test_path_transformed))
+  az_dataset = full_dataset[full_dataset["LabelEncoded"] <= 25]
+  train_dataset, test_val_dataset = train_test_split(az_dataset, test_size=0.2, random_state=0, shuffle=True)
+  test_dataset, val_dataset = train_test_split(test_val_dataset, test_size=0.5, random_state=0, shuffle=True)
+  train_dataset.to_csv("{}/train_az.csv".format(homemade_train_test_path_transformed))
+  test_dataset.to_csv("{}/test_az.csv".format(homemade_train_test_path_transformed))
+  val_dataset.to_csv("{}/val_az.csv".format(homemade_train_test_path_transformed))
+  PrintDatetime("Started training experiment")
+  main("{}/train_az.csv".format(homemade_train_test_path_transformed), "{}/test_az.csv".format(homemade_train_test_path_transformed), "{}/val_az.csv".format(homemade_train_test_path_transformed), learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epoch, model_save_path=model_save_path_transformed)
+  PrintDatetime()
 
-    test_dataset.to_csv("{}/test_az.csv".format(homemade_train_test_path_transformed))
-    val_dataset.to_csv("{}/val_az.csv".format(homemade_train_test_path_transformed))
-    PrintDatetime("Started training experiment")
-    main(config_train_path, "{}/test_az.csv".format(homemade_train_test_path_transformed), "{}/val_az.csv".format(homemade_train_test_path_transformed), learning_rate=learning_rate, batch_size=batch_size, num_epochs=10, model_save_path=model_save_path_transformed)
-    PrintDatetime()
-    i += 1
+  PrintDatetime("Started training experiment")
+  main("{}/train_az.csv".format(homemade_train_test_path), "{}/test_az.csv".format(homemade_train_test_path_transformed), "{}/val_az.csv".format(homemade_train_test_path_transformed), learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epoch, model_save_path=model_save_path_cross)
+  PrintDatetime()
+
+
+  i += 1
 
 PrintDatetime()
-
